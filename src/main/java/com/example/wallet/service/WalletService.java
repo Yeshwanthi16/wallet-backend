@@ -1,5 +1,6 @@
 package com.example.wallet.service;
 
+import com.example.wallet.features.EmailFeature;
 import com.example.wallet.features.JwtFeature;
 import com.example.wallet.model.Transaction;
 import com.example.wallet.model.dto.*;
@@ -9,19 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 
 @Service
 public class WalletService {
+    private final UserRepo userRepo;
+    private final TransactionDataRepo transactionDataRepo;
+    private final EmailFeature emailFeature;
     @Autowired
-    private UserRepo userRepo;
-    @Autowired
-    private TransactionDataRepo transactionDataRepo;
-    @Autowired
-    private JwtFeature jwtFeature;
+    public WalletService(UserRepo userRepo, TransactionDataRepo transactionDataRepo, EmailFeature emailFeature){
+        this.userRepo = userRepo;
+        this.transactionDataRepo = transactionDataRepo;
+        this.emailFeature = emailFeature;
+    }
     User user = new User();
     TransactionData transactionData = new TransactionData();
 
@@ -43,6 +45,8 @@ public class WalletService {
         transactionData.setUserId(user.getId());
 
         transactionDataRepo.save(transactionData);
+
+//        emailFeature.sendEmail(user.getEmail());
 
         return new ApiResponse(HttpStatus.OK,"User created successfully");
     }
@@ -120,20 +124,77 @@ public class WalletService {
         Transaction recharge = new Transaction(UUID.randomUUID().toString(),"Recharge", rechargeReq.getAmount(), rechargeReq.getEmail(), new Date());
         Transaction cashback = new Transaction(UUID.randomUUID().toString(), "Cashback", rechargeReq.getAmount() * 0.01, rechargeReq.getEmail(), new Date());
 
-        TransactionData transactionData = userTransactions.getFirst();
+        TransactionData temp = userTransactions.getFirst();
 
-        List<Transaction> transactions = transactionData.getTransaction();
+        List<Transaction> transactions = temp.getTransaction();
         transactions.add(recharge);
         transactions.add(cashback);
-        transactionData.setTransaction(transactions);
+        temp.setTransaction(transactions);
 
-        transactionDataRepo.save(transactionData);
+        transactionDataRepo.save(temp);
         userRepo.save(user);
 
         return new ApiResponse(HttpStatus.OK, "Wallet recharged successfully with cashback");
     }
 
     public ApiResponse transfer(TransferReq transferReq, String authHeader) {
-        return null;
+
+        if (!authHeader.startsWith("Bearer ")) {
+            return new ApiResponse(HttpStatus.BAD_REQUEST, "Unauthorized");
+        }
+
+        String token = authHeader.substring(7);
+        String username = JwtFeature.extractUsername(token);
+
+        Optional<User> optionalFromUser = userRepo.findByEmail(username);
+        Optional<User> optionalToUser = userRepo.findByEmail(transferReq.getToEmail());
+
+        if (optionalFromUser.isEmpty() || optionalToUser.isEmpty()) {
+            return new ApiResponse(HttpStatus.BAD_REQUEST, "User not found");
+        }
+
+        if (transferReq.getAmount() <= 0) {
+            return new ApiResponse(HttpStatus.BAD_REQUEST, "Invalid amount");
+        }
+
+        if (username.equals(transferReq.getToEmail())) {
+            return new ApiResponse(HttpStatus.BAD_REQUEST, "Cannot transfer funds to oneself");
+        }
+
+        User fromUser = optionalFromUser.get();
+        User toUser = optionalToUser.get();
+
+        if (fromUser.getWalletBalance() < transferReq.getAmount())
+        {
+            return new ApiResponse(HttpStatus.BAD_REQUEST, "Insufficient balance");
+        }
+
+        Transaction fromUserTransaction = new Transaction(UUID.randomUUID().toString(), "Transfer", -transferReq.getAmount(), toUser.getEmail(), new Date());
+        Transaction toUserTransaction = new Transaction(UUID.randomUUID().toString(), "Transfer", transferReq.getAmount(), fromUser.getEmail(), new Date());
+
+        TransactionData fromUserTransactionList = transactionDataRepo.findByUserId(fromUser.getId()).stream().findFirst().orElse(null);
+        if (fromUserTransactionList == null) {
+            fromUserTransactionList = new TransactionData();
+            fromUserTransactionList.setUserId(fromUser.getId());
+            fromUserTransactionList.setTransaction(new ArrayList<>());
+        }
+        fromUserTransactionList.getTransaction().add(fromUserTransaction);
+        transactionDataRepo.save(fromUserTransactionList);
+
+        TransactionData toUserTransactionList = transactionDataRepo.findByUserId(toUser.getId()).stream().findFirst().orElse(null);
+        if (toUserTransactionList == null) {
+            toUserTransactionList = new TransactionData();
+            toUserTransactionList.setUserId(toUser.getId());
+            toUserTransactionList.setTransaction(new ArrayList<>());
+        }
+        toUserTransactionList.getTransaction().add(toUserTransaction);
+        transactionDataRepo.save(toUserTransactionList);
+
+        optionalFromUser.get().setWalletBalance(fromUser.getWalletBalance() - transferReq.getAmount());
+        optionalToUser.get().setWalletBalance(toUser.getWalletBalance() + transferReq.getAmount());
+        userRepo.save(optionalFromUser.get());
+        userRepo.save(optionalToUser.get());
+
+        return new ApiResponse(HttpStatus.OK, "Transfer successful");
     }
 }

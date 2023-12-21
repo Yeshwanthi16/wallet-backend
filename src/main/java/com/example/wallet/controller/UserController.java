@@ -1,21 +1,18 @@
 package com.example.wallet.controller;
 
-import com.example.wallet.features.JwtFeature;
 import com.example.wallet.model.dto.*;
 import com.example.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-
 @RequestMapping("/wallet")
 @RestController
 public class UserController {
+    private final WalletService walletService;
     @Autowired
-    WalletService walletService;
+    public UserController(WalletService walletService) {
+        this.walletService = walletService;
+    }
 
     @PostMapping("/register")
     public ApiResponse registerUser(@RequestBody User userReq)
