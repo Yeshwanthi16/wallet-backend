@@ -32,7 +32,7 @@ public class JwtFeature {
     }
 
     private static Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode("k5/0bGrvBf0LARG8pktbNC/E9JILIyLaZq8fOkoGiU4q5qEw+hMPUfRJ329XAtA6GQr/sbyobMu1IVU5cf2YeA==");
+        byte[] keyBytes = Decoders.BASE64.decode("635166546A576E5A7234753778217A25432A462D4A614E645267556B58703273");
         return Keys.hmacShaKeyFor(keyBytes);
 
     }
