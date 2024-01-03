@@ -1,6 +1,7 @@
 package com.example.wallet.features;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -16,37 +17,38 @@ import java.util.function.Function;
 @Component
 public class JwtFeature {
 
-    public static String generateToken(String email) {
+    public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, email);
     }
 
-    private static String createToken(Map<String, Object> claims, String email) {
-        return Jwts.builder()
+    private String createToken(Map<String, Object> claims, String email) {
+        JwtBuilder builder = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
-                .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
+                .signWith(getSignKey(), SignatureAlgorithm.HS256);
+        return builder.compact();
 
     }
 
-    private static Key getSignKey() {
+    private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode("635166546A576E5A7234753778217A25432A462D4A614E645267556B58703273");
         return Keys.hmacShaKeyFor(keyBytes);
 
     }
 
-    public static String extractUsername(String token) {
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    private static <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    private static Claims extractAllClaims(String token) {
+    private Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
                 .setSigningKey(getSignKey())
@@ -56,7 +58,7 @@ public class JwtFeature {
 
     }
 
-    public static Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 }

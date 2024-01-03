@@ -18,11 +18,13 @@ public class WalletService {
     private final UserRepo userRepo;
     private final TransactionDataRepo transactionDataRepo;
     private final EmailFeature emailFeature;
+    private final JwtFeature jwtFeature;
     @Autowired
-    public WalletService(UserRepo userRepo, TransactionDataRepo transactionDataRepo, EmailFeature emailFeature){
+    public WalletService(UserRepo userRepo, TransactionDataRepo transactionDataRepo, EmailFeature emailFeature, JwtFeature jwtFeature){
         this.userRepo = userRepo;
         this.transactionDataRepo = transactionDataRepo;
         this.emailFeature = emailFeature;
+        this.jwtFeature = jwtFeature;
     }
     User user = new User();
     TransactionData transactionData = new TransactionData();
@@ -33,10 +35,12 @@ public class WalletService {
             return new ApiResponse(HttpStatus.BAD_REQUEST, "Account exists with this email already");
         }
 
+        String encryptedPassword = new BCryptPasswordEncoder().encode(userReq.getPassword());
+
         user.setId(UUID.randomUUID().toString());
         user.setUsername(userReq.getUsername());
         user.setEmail(userReq.getEmail());
-        user.setPassword(userReq.getPassword());
+        user.setPassword(encryptedPassword);
         user.setWalletBalance(userReq.getWalletBalance());
 
         userRepo.save(user);
@@ -46,7 +50,7 @@ public class WalletService {
 
         transactionDataRepo.save(transactionData);
 
-//        emailFeature.sendEmail(user.getEmail());
+        emailFeature.sendEmail(user.getEmail());
 
         return new ApiResponse(HttpStatus.OK,"User created successfully");
     }
@@ -65,16 +69,16 @@ public class WalletService {
 //            throw new RuntimeException("Invalid email or password");
 //        }
 
-        return JwtFeature.generateToken(user.getEmail());
+        return jwtFeature.generateToken(user.getEmail());
     }
 
     public UserDataResponse data(UserReq userReq)
     {
         String token = userReq.getToken();
-        if (JwtFeature.extractExpiration(token).before(new Date())) {
+        if (jwtFeature.extractExpiration(token).before(new Date())) {
             throw new RuntimeException("Token is expired or invalid");
         }
-        String username = JwtFeature.extractUsername(token);
+        String username = jwtFeature.extractUsername(token);
         Optional<User> optionalUser = userRepo.findByEmail(username);
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Not authorized user");
@@ -94,7 +98,7 @@ public class WalletService {
             return new ApiResponse(HttpStatus.BAD_REQUEST, "Unauthorized");
         }
 
-        String username = JwtFeature.extractUsername(authHeader.substring(7));
+        String username = jwtFeature.extractUsername(authHeader.substring(7));
 
         Optional<User> optionalUser = userRepo.findByEmail(username);
 
@@ -144,7 +148,7 @@ public class WalletService {
         }
 
         String token = authHeader.substring(7);
-        String username = JwtFeature.extractUsername(token);
+        String username = jwtFeature.extractUsername(token);
 
         Optional<User> optionalFromUser = userRepo.findByEmail(username);
         Optional<User> optionalToUser = userRepo.findByEmail(transferReq.getToEmail());

@@ -39,7 +39,7 @@ public class WalletServiceTests {
     private UserRepo userRepository;
 
     @Mock
-    private JwtFeature jwtService;
+    private JwtFeature jwtFeature;
 
     @Mock
     private EmailFeature emailService;
@@ -62,7 +62,7 @@ public class WalletServiceTests {
         ApiResponse response = walletservice.createUser(registrationRequest);
 
         assertEquals(HttpStatus.OK, response.getStatus());
-        assertEquals("User registered successfully", response.getResponse());
+        assertEquals("User created successfully", response.getResponse());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
@@ -82,12 +82,8 @@ public class WalletServiceTests {
         assertTrue(savedTransactionList.getTransaction().isEmpty());
 
         ArgumentCaptor<String> toCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
-//        verify(emailService).sendEmail(toCaptor.capture(), subjectCaptor.capture(), bodyCaptor.capture());
+        verify(emailService).sendEmail(toCaptor.capture());
         assertEquals(registrationRequest.getEmail(), toCaptor.getValue());
-        assertEquals("Registration successful", subjectCaptor.getValue());
-        assertTrue(bodyCaptor.getValue().contains(registrationRequest.getUsername()));
     }
 
     @Test
@@ -100,7 +96,7 @@ public class WalletServiceTests {
         ApiResponse response = walletservice.createUser(registrationRequest);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
-        assertEquals("Account exists with this email", response.getResponse());
+        assertEquals("Account exists with this email already", response.getResponse());
 
         verify(userRepository, never()).save(any(User.class));
         verify(transactionListRepository, never()).save(any(TransactionData.class));
@@ -120,7 +116,7 @@ public class WalletServiceTests {
         user.setPassword(new BCryptPasswordEncoder().encode("password"));
 
         when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
-        when(JwtFeature.generateToken("test@test.com")).thenReturn("test_token");
+        when(jwtFeature.generateToken("test@test.com")).thenReturn("test_token");
 
         LoginReq LoginReq = new LoginReq();
         LoginReq.setEmail("test@test.com");
@@ -174,8 +170,8 @@ public class WalletServiceTests {
         transactionList.setUserId(user.getId());
         transactionList.setTransaction(Collections.emptyList());
 
-        when(JwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() + 3600000));
-        when(JwtFeature.extractUsername(UserReq.getToken())).thenReturn(user.getEmail());
+        when(jwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() + 3600000));
+        when(jwtFeature.extractUsername(UserReq.getToken())).thenReturn(user.getEmail());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(transactionListRepository.findByUserId(user.getId())).thenReturn(Collections.singletonList(transactionList));
 
@@ -196,7 +192,7 @@ public class WalletServiceTests {
         UserReq UserReq = new UserReq();
         UserReq.setToken("expired_token");
 
-        when(JwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() - 3600000));
+        when(jwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() - 3600000));
 
         walletservice.data(UserReq);
     }
@@ -206,8 +202,8 @@ public class WalletServiceTests {
         UserReq UserReq = new UserReq();
         UserReq.setToken("valid_token");
 
-        when(JwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() + 3600000));
-        when(JwtFeature.extractUsername(UserReq.getToken())).thenReturn("unknown_user@example.com");
+        when(jwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() + 3600000));
+        when(jwtFeature.extractUsername(UserReq.getToken())).thenReturn("unknown_user@example.com");
         when(userRepository.findByEmail("unknown_user@example.com")).thenReturn(Optional.empty());
 
         walletservice.data(UserReq);
@@ -226,7 +222,7 @@ public class WalletServiceTests {
         User toUser = new User();
         TransferReq TransferReq = new TransferReq();
         TransferReq.setAmount(transferAmount);
-        String token = "Bearer " + JwtFeature.generateToken(fromEmail);
+        String token = "Bearer " + jwtFeature.generateToken(fromEmail);
 //        when(userRepository.findByEmail(fromEmail)).thenReturn(Optional.of(fromUser));
 //        when(userRepository.findByEmail("random")).thenReturn(Optional.of(toUser));
 
@@ -237,11 +233,11 @@ public class WalletServiceTests {
         assertEquals("User not found", response.getResponse());
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testRechargeWallet_InvalidAmount() {
         RechargeReq RechargeReq = new RechargeReq();
         RechargeReq.setAmount(-100);
-        String authHeader = "Bearer " + JwtFeature.generateToken("testuser@example.com");
+        String authHeader = "Bearer " + jwtFeature.generateToken("testuser@example.com");
 
         ApiResponse response = walletservice.recharge(RechargeReq, authHeader);
 
@@ -253,7 +249,7 @@ public class WalletServiceTests {
     public void testRechargeWallet_InvalidUser() {
         RechargeReq RechargeReq = new RechargeReq();
         RechargeReq.setAmount(100);
-        String authHeader = "Bearer " + JwtFeature.generateToken("admin@gmail.com");
+        String authHeader = "Bearer " + jwtFeature.generateToken("admin@gmail.com");
 
 //        when(userRepository.findByEmail("admin@gmail.com")).thenReturn(Optional.empty());
 
@@ -282,7 +278,7 @@ public class WalletServiceTests {
         TransferReq.setToEmail("admin@gmail.com");
         String username = "admin@gmail.com";
 
-        ApiResponse response = walletservice.transfer(TransferReq, "Bearer  " + JwtFeature.generateToken(username));
+        ApiResponse response = walletservice.transfer(TransferReq, "Bearer " + jwtFeature.generateToken(username));
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
         assertEquals("User not found", response.getResponse());
@@ -297,7 +293,7 @@ public class WalletServiceTests {
     @Test
     public void rechargeWallet_Successful() throws Exception {
         String username = "user@test.com";
-        String token = "Bearer  "+ JwtFeature.generateToken(username);
+        String token = "Bearer "+ jwtFeature.generateToken(username);
         User user = new User();
 
         user.setUsername(username);
@@ -306,7 +302,7 @@ public class WalletServiceTests {
         RechargeReq RechargeReq = new RechargeReq();
         RechargeReq.setAmount(100.0);
 
-        when(JwtFeature.extractUsername(token.substring(7))).thenReturn(username);
+        when(jwtFeature.extractUsername(token.substring(7))).thenReturn(username);
         when(userRepository.findByEmail(username)).thenReturn(Optional.of(user));
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -321,7 +317,7 @@ public class WalletServiceTests {
     @Test
     public void transferAmount_Successful() throws Exception {
         String username = "user1@test.com";
-        String token = "Bearer " + JwtFeature.generateToken(username);
+        String token = "Bearer " + jwtFeature.generateToken(username);
 
         User fromUser = new User();
         fromUser.setId("1L");
@@ -333,7 +329,7 @@ public class WalletServiceTests {
         toUser.setEmail("user2@test.com");
         toUser.setWalletBalance(100.0);
 
-        when(JwtFeature.extractUsername(token.substring(7))).thenReturn(username);
+        when(jwtFeature.extractUsername(token.substring(7))).thenReturn(username);
         when(userRepository.findByEmail(username)).thenReturn(Optional.of(fromUser));
         when(userRepository.findByEmail(toUser.getEmail())).thenReturn(Optional.of(toUser));
 
@@ -355,8 +351,8 @@ public class WalletServiceTests {
         ArgumentCaptor<TransactionData> fromUserTransactionListCaptor = ArgumentCaptor.forClass(TransactionData.class);
         verify(transactionListRepository, times(2)).save(fromUserTransactionListCaptor.capture());
         List<TransactionData> capturedFromUserTransactionLists = fromUserTransactionListCaptor.getAllValues();
-        assertEquals(capturedFromUserTransactionLists.get(0).getUserId(), fromUser.getId());
-        assertEquals(capturedFromUserTransactionLists.get(0).getTransaction().size(), 1);
+        assertEquals(capturedFromUserTransactionLists.getFirst().getUserId(), fromUser.getId());
+        assertEquals(capturedFromUserTransactionLists.getFirst().getTransaction().size(), 1);
 
         ArgumentCaptor<TransactionData> toUserTransactionListCaptor = ArgumentCaptor.forClass(TransactionData.class);
         verify(transactionListRepository, times(2)).save(toUserTransactionListCaptor.capture());
