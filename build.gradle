@@ -29,6 +29,8 @@ dependencies {
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.3'
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.3'
 	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 	implementation group: 'org.springframework.security', name: 'spring-security-config', version: '6.2.0'
 }
 
