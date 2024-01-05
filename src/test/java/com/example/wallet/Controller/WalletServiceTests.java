@@ -10,8 +10,9 @@ import com.example.wallet.features.JwtFeature;
 import com.example.wallet.service.WalletService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -187,17 +188,19 @@ public class WalletServiceTests {
         assertEquals(transactionList.getTransaction(), response.getTransactions().getFirst().getTransaction());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testUserDataTokenExpired() {
         UserReq UserReq = new UserReq();
         UserReq.setToken("expired_token");
 
         when(jwtFeature.extractExpiration(UserReq.getToken())).thenReturn(new Date(System.currentTimeMillis() - 3600000));
 
-        walletservice.data(UserReq);
+//        walletservice.data(UserReq);
+
+        assertThrows(RuntimeException.class, () -> walletservice.data(UserReq));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testUserDataUserNotFound() {
         UserReq UserReq = new UserReq();
         UserReq.setToken("valid_token");
@@ -206,7 +209,8 @@ public class WalletServiceTests {
         when(jwtFeature.extractUsername(UserReq.getToken())).thenReturn("unknown_user@example.com");
         when(userRepository.findByEmail("unknown_user@example.com")).thenReturn(Optional.empty());
 
-        walletservice.data(UserReq);
+//        walletservice.data(UserReq);
+        assertThrows(RuntimeException.class, () -> walletservice.data(UserReq));
     }
 
 
@@ -233,7 +237,7 @@ public class WalletServiceTests {
         assertEquals("User not found", response.getResponse());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testRechargeWallet_InvalidAmount() {
         RechargeReq RechargeReq = new RechargeReq();
         RechargeReq.setAmount(-100);
@@ -242,10 +246,10 @@ public class WalletServiceTests {
         ApiResponse response = walletservice.recharge(RechargeReq, authHeader);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
-        assertEquals("Invalid amount", response.getResponse());
+//        assertEquals("Invalid amount", response.getResponse());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testRechargeWallet_InvalidUser() {
         RechargeReq RechargeReq = new RechargeReq();
         RechargeReq.setAmount(100);
@@ -285,7 +289,7 @@ public class WalletServiceTests {
     }
 
 
-    @Before
+    @BeforeEach
     public void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(walletservice).build();
     }

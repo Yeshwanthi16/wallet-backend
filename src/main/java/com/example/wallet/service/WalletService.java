@@ -65,9 +65,9 @@ public class WalletService {
 
         user = optionalUser.get();
 
-//        if (!new BCryptPasswordEncoder().matches(loginReq.getPassword(), user.getPassword())) {
-//            throw new RuntimeException("Invalid email or password");
-//        }
+        if (!new BCryptPasswordEncoder().matches(loginReq.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
 
         return jwtFeature.generateToken(user.getEmail());
     }
@@ -104,7 +104,9 @@ public class WalletService {
 
         if (optionalUser.isEmpty())
         {
-            throw new RuntimeException("Not authorized user");
+//            throw new RuntimeException("Not authorized user");
+
+            return new ApiResponse(HttpStatus.BAD_REQUEST, "Not authorized user");
         }
 
         if (rechargeReq.getAmount() <= 0)
