@@ -16,7 +16,9 @@ public class Transaction {
 
     private Double amount;
 
-    private String email;
+    private String fromEmail;
+
+    private String toEmail;
 
     private Date date;
 }

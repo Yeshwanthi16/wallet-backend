@@ -1,16 +1,19 @@
 package com.example.wallet.model.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-@NoArgsConstructor
+
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "Users")
+//@Document(collection = "Users")
+@Builder
 public class User {
-    @Id
+//    @Id
     private String id;
 
     private String username;
@@ -19,6 +22,7 @@ public class User {
 
     private String email;
 
+    @Builder.Default
     private Double walletBalance = 0.0;
 
 }

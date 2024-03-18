@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/wallet")
 @RestController
+@CrossOrigin
 public class UserController {
+
     private final WalletService walletService;
-    @Autowired
+//    @Autowired
     public UserController(WalletService walletService) {
         this.walletService = walletService;
     }
@@ -34,4 +36,6 @@ public class UserController {
 
     @PostMapping("/transfer")
     public ApiResponse transferAmount(@RequestBody TransferReq transferReq, @RequestHeader("Authorization") String authHeader) { return walletService.transfer(transferReq,authHeader);}
+
+
 }

@@ -13,9 +13,9 @@ import java.util.Properties;
 public class EmailFeature {
 
     public void sendEmail(String email) {
-        User user = new User();
-        String from = "festify.alpha@gmail.com";
-        String password = "vumzkdawhviwdzlq";
+
+        String from = "samplemail9945@gmail.com";
+        String password = "uyxtousfvzinijjs ";
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -32,7 +32,7 @@ public class EmailFeature {
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
             message.setSubject("Registration successful");
-            message.setText("Dear" + user.getUsername() + ",\n\nThank you for registering with us. Your Tuple Wallet account has been created successfully.");
+            message.setText("Dear" + " User " + ",\n\nThank you for registering with us. Your Tuple Wallet account has been created successfully.");
             Transport.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException(e);

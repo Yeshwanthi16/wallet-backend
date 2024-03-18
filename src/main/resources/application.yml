@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/wallet
+
+allowed:
+  origin: http://localhost:3000
+
+application.signingKey: 635166546A576E5A7234753778217A25432A462D4A614E645267556B58703273
