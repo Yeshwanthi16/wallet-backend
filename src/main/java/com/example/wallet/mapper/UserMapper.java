@@ -11,15 +11,12 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
 //@Mapper(componentModel = "spring")
-@Mapper(
-        // Configures the mapper to ignore unmapped properties and null properties
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper
 public interface UserMapper {
 
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    User modelToDto(UserInfoEntity userInfoEntity);
+//    User modelToDto(UserInfoEntity userInfoEntity);
 
     UserInfoEntityImpl dtoToModel(User user);
 

@@ -2,6 +2,7 @@ package com.example.wallet.service;
 
 import com.example.wallet.features.EmailFeature;
 import com.example.wallet.features.JwtFeature;
+import com.example.wallet.mapper.TransactionDataMapper;
 import com.example.wallet.mapper.UserMapper;
 import com.example.wallet.model.Transaction;
 import com.example.wallet.model.dto.*;
@@ -28,6 +29,9 @@ public class WalletService {
 
     private static final UserMapper USER_INFO_INSTANCE =
             Mappers.getMapper(UserMapper.class);
+
+    private static final TransactionDataMapper TRANSACTION_INSTANCE =
+            Mappers.getMapper(TransactionDataMapper.class);
     User user = new User();
     TransactionData transactionData = new TransactionData();
 
@@ -44,18 +48,25 @@ public class WalletService {
                 .email(userReq.getEmail())
                         .password(encryptedPassword)
                                 .walletBalance(userReq.getWalletBalance()).build();
-        user.setId(UUID.randomUUID().toString());
-        user.setUsername(userReq.getUsername());
-        user.setEmail(userReq.getEmail());
-        user.setPassword(encryptedPassword);
-        user.setWalletBalance(userReq.getWalletBalance());
+//        user.setId(UUID.randomUUID().toString());
+//        user.setUsername(userReq.getUsername());
+//        user.setEmail(userReq.getEmail());
+//        user.setPassword(encryptedPassword);
+//        user.setWalletBalance(userReq.getWalletBalance());
 
-        userRepo.save(USER_INFO_INSTANCE.dtoToModel(user));
+        userRepo.save(USER_INFO_INSTANCE.dtoToModel(user1));
 //            userRepo.save(user);
-        transactionData.setTransaction(new ArrayList<>());
-        transactionData.setUserId(user.getId());
 
-        transactionDataRepo.save(transactionData);
+//        transactionData.setTransaction(new ArrayList<>());
+//        transactionData.setUserId(user.getId());
+
+        TransactionData transactionData1 = TransactionData.builder()
+                .id(UUID.randomUUID().toString())
+                        .userId(user1.getId())
+                                .transaction(new ArrayList<>()).build();
+
+//        transactionDataRepo.save(transactionData);
+        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(transactionData1));
 
         emailFeature.sendEmail(userReq.getEmail());
 
@@ -131,7 +142,7 @@ public class WalletService {
         }
 
         Transaction recharge = new Transaction(UUID.randomUUID().toString(),"Recharge", rechargeReq.getAmount(), rechargeReq.getEmail(),null, new Date());
-        Transaction cashback = new Transaction(UUID.randomUUID().toString(), "Cashback", rechargeReq.getAmount() * 0.01, rechargeReq.getEmail(), null,new Date());
+        Transaction cashback = new Transaction(UUID.randomUUID().toString(), "Cashback", rechargeReq.getAmount() * 0.01, "Wallet@mail.com", null,new Date());
 
         TransactionData temp = userTransactions.get(0);
 
@@ -140,7 +151,8 @@ public class WalletService {
         transactions.add(cashback);
         temp.setTransaction(transactions);
 
-        transactionDataRepo.save(temp);
+//        transactionDataRepo.save(temp);
+        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(temp));
         userRepo.save(USER_INFO_INSTANCE.dtoToModel(user));
 //        userRepo.save(user);
 
@@ -186,7 +198,8 @@ public class WalletService {
             fromUserTransactionList.setTransaction(new ArrayList<>());
         }
         fromUserTransactionList.getTransaction().add(fromUserTransaction);
-        transactionDataRepo.save(fromUserTransactionList);
+//        transactionDataRepo.save(fromUserTransactionList);
+        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(fromUserTransactionList));
 
         TransactionData toUserTransactionList = transactionDataRepo.findByUserId(toUser.getId()).stream().findFirst().orElse(null);
         if (toUserTransactionList == null) {
@@ -195,8 +208,8 @@ public class WalletService {
             toUserTransactionList.setTransaction(new ArrayList<>());
         }
         toUserTransactionList.getTransaction().add(toUserTransaction);
-        transactionDataRepo.save(toUserTransactionList);
-
+//        transactionDataRepo.save(toUserTransactionList);
+        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(toUserTransactionList));
         optionalFromUser.get().setWalletBalance(fromUser.getWalletBalance() - transferReq.getAmount());
         optionalToUser.get().setWalletBalance(toUser.getWalletBalance() + transferReq.getAmount());
 
