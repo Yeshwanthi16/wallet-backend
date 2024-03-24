@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/wallet
+      uri: mongodb://468b6805eba9:27017/wallet?replicaSet=myrepl&retryWrites=true
 allowed:
   origin: http://localhost:3000
 #logging.level.org.springframework.web.servlet.handler.HandlerMappingIntrospector=ERROR

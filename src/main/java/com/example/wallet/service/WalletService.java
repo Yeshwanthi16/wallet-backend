@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -35,6 +36,7 @@ public class WalletService {
     User user = new User();
     TransactionData transactionData = new TransactionData();
 
+//    @Transactional
     public ApiResponse createUser(User userReq){
         if (userRepo.findByEmail(userReq.getEmail()).isPresent())
         {
@@ -108,7 +110,7 @@ public class WalletService {
 
         return new UserDataResponse(user, transactions);
     }
-
+//    @Transactional
     public ApiResponse recharge(RechargeReq rechargeReq,String authHeader)
     {
 
@@ -159,6 +161,7 @@ public class WalletService {
         return new ApiResponse(HttpStatus.OK, "Wallet recharged successfully with cashback");
     }
 
+//    @Transactional
     public ApiResponse transfer(TransferReq transferReq, String authHeader) {
 
         String token = authHeader.substring(7);
@@ -199,7 +202,7 @@ public class WalletService {
         }
         fromUserTransactionList.getTransaction().add(fromUserTransaction);
 //        transactionDataRepo.save(fromUserTransactionList);
-        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(fromUserTransactionList));
+//        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(fromUserTransactionList));
 
         TransactionData toUserTransactionList = transactionDataRepo.findByUserId(toUser.getId()).stream().findFirst().orElse(null);
         if (toUserTransactionList == null) {
@@ -209,12 +212,12 @@ public class WalletService {
         }
         toUserTransactionList.getTransaction().add(toUserTransaction);
 //        transactionDataRepo.save(toUserTransactionList);
-        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(toUserTransactionList));
+//        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(toUserTransactionList));
         optionalFromUser.get().setWalletBalance(fromUser.getWalletBalance() - transferReq.getAmount());
         optionalToUser.get().setWalletBalance(toUser.getWalletBalance() + transferReq.getAmount());
 
-        userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalFromUser.get()));
-        userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalToUser.get()));
+//        userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalFromUser.get()));
+//        userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalToUser.get()));
 //        userRepo.save(optionalFromUser.get());
 //        userRepo.save(optionalToUser.get());
 

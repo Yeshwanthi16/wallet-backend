@@ -12,12 +12,12 @@ import org.springframework.web.client.HttpServerErrorException;
 @ControllerAdvice
 @RestController
 @Slf4j
-public class Exceptionhandler {
-    @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<Apierror> exception(Exception exception) {
-        Apierror apierror = new Apierror("Auth missing",400);
-        return new ResponseEntity<>(apierror,HttpStatus.BAD_REQUEST);
-    }
+public class ExceptionController {
+//    @ExceptionHandler(value = Exception.class)
+//    public ResponseEntity<Apierror> exception(Exception exception) {
+//        Apierror apierror = new Apierror("Auth missing",400);
+//        return new ResponseEntity<>(apierror,HttpStatus.BAD_REQUEST);
+//    }
 
     @ExceptionHandler(value = NullPointerException.class)
     public ResponseEntity<Apierror> exception(NullPointerException exception) {
