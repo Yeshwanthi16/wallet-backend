@@ -29,7 +29,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Override
     public MongoClient mongoClient() {
-        final ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017/wallet");
+        final ConnectionString connectionString = new ConnectionString("mongodb://localhost:27018/wallet");
         final MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)
                 .build();

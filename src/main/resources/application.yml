@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/wallet
+      uri: mongodb://localhost:27018/wallet
 
 allowed:
   origin: http://localhost:3000

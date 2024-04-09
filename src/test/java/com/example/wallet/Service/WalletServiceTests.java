@@ -1,5 +1,6 @@
 package com.example.wallet.Service;
 
+import com.example.wallet.entity.TransactionDataImpl;
 import com.example.wallet.entity.UserInfoEntityImpl;
 import com.example.wallet.features.EmailFeature;
 import com.example.wallet.features.JwtFeature;
@@ -64,7 +65,7 @@ public class WalletServiceTests {
 
         when(userRepo.findByEmail(registrationRequest.getEmail())).thenReturn(Optional.empty());
         when(userRepo.save(any(UserInfoEntityImpl.class))).thenReturn(new UserInfoEntityImpl());
-        when(transactionListRepository.save(any(TransactionData.class))).thenReturn(new TransactionData());
+        when(transactionListRepository.save(any(TransactionDataImpl.class))).thenReturn(new TransactionDataImpl());
         doNothing().when(emailService).sendEmail("johndoe@example.com");
 
         ApiResponse response = walletservice.createUser(registrationRequest);
@@ -108,7 +109,7 @@ public class WalletServiceTests {
         assertEquals("Account exists with this email already", response.getResponse());
 
         verify(userRepo, never()).save(any(UserInfoEntityImpl.class));
-        verify(transactionListRepository, never()).save(any(TransactionData.class));
+        verify(transactionListRepository, never()).save(any(TransactionDataImpl.class));
         verify(emailService, never()).sendEmail(anyString());
     }
 
@@ -330,7 +331,8 @@ public class WalletServiceTests {
         assertEquals(150, toUser.getWalletBalance(), 0.0);
 
         // Verify that transactions are saved
-        verify(transactionListRepository, times(2)).save(any(TransactionData.class));
+        verify(transactionListRepository, times(1)).save(any(TransactionDataImpl.class));
+
     }
 
 

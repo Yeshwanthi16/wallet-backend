@@ -1,43 +1,40 @@
 package com.example.wallet.features;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@Component
+@Service
 public class JwtFeature {
     @Value("${application.signingKey}")
     private String key;
 
     public String generateToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, email);
+        return createToken(new HashMap<>(), email);
     }
 
     public String createToken(Map<String, Object> claims, String email) {
-        JwtBuilder builder = Jwts.builder()
-                .setClaims(claims)
-                .setSubject(email)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
-                .signWith(getSignKey(), SignatureAlgorithm.HS256);
-        return builder.compact();
-
+        return Jwts
+                .builder()
+                .claims(claims)
+                .claim("email", email)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis()+1000*60*24))
+                .signWith(getSignKey())
+                .compact();
     }
 
-    private Key getSignKey() {
+    private SecretKey getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(key);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -63,10 +60,13 @@ public class JwtFeature {
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
-                .setSigningKey(getSignKey())
+                .verifyWith(getSignKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+
+//        .parseSignedClaims(token)
+//                l.getPayload();
 
     }
 

@@ -36,7 +36,7 @@ public class WalletService {
     User user = new User();
     TransactionData transactionData = new TransactionData();
 
-//    @Transactional
+    @Transactional
     public ApiResponse createUser(User userReq){
         if (userRepo.findByEmail(userReq.getEmail()).isPresent())
         {
@@ -110,7 +110,7 @@ public class WalletService {
 
         return new UserDataResponse(user, transactions);
     }
-//    @Transactional
+    @Transactional
     public ApiResponse recharge(RechargeReq rechargeReq,String authHeader)
     {
 
@@ -161,7 +161,7 @@ public class WalletService {
         return new ApiResponse(HttpStatus.OK, "Wallet recharged successfully with cashback");
     }
 
-//    @Transactional
+    @Transactional
     public ApiResponse transfer(TransferReq transferReq, String authHeader) {
 
         String token = authHeader.substring(7);
@@ -211,15 +211,14 @@ public class WalletService {
             toUserTransactionList.setTransaction(new ArrayList<>());
         }
         toUserTransactionList.getTransaction().add(toUserTransaction);
-//        transactionDataRepo.save(toUserTransactionList);
-//        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(toUserTransactionList));
+
+        transactionDataRepo.save(TRANSACTION_INSTANCE.dtoToModel(toUserTransactionList));
+
         optionalFromUser.get().setWalletBalance(fromUser.getWalletBalance() - transferReq.getAmount());
         optionalToUser.get().setWalletBalance(toUser.getWalletBalance() + transferReq.getAmount());
 
-//        userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalFromUser.get()));
-//        userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalToUser.get()));
-//        userRepo.save(optionalFromUser.get());
-//        userRepo.save(optionalToUser.get());
+            userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalFromUser.get()));
+            userRepo.save(USER_INFO_INSTANCE.dtoToModel(optionalToUser.get()));
 
         return new ApiResponse(HttpStatus.OK, "Transfer successful");
     }

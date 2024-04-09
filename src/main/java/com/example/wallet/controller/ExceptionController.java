@@ -13,11 +13,11 @@ import org.springframework.web.client.HttpServerErrorException;
 @RestController
 @Slf4j
 public class ExceptionController {
-//    @ExceptionHandler(value = Exception.class)
-//    public ResponseEntity<Apierror> exception(Exception exception) {
-//        Apierror apierror = new Apierror("Auth missing",400);
-//        return new ResponseEntity<>(apierror,HttpStatus.BAD_REQUEST);
-//    }
+    @ExceptionHandler(value = RuntimeException.class )
+    public ResponseEntity<Apierror> exception(Exception exception) {
+        Apierror apierror = new Apierror("Request not processed",410);
+        return new ResponseEntity<>(apierror,HttpStatus.GONE);
+    }
 
     @ExceptionHandler(value = NullPointerException.class)
     public ResponseEntity<Apierror> exception(NullPointerException exception) {
@@ -25,8 +25,8 @@ public class ExceptionController {
         return new ResponseEntity<>(apierror,HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ExceptionHandler(value = HttpServerErrorException.InternalServerError.class)
-    public ResponseEntity<Apierror> exception(HttpServerErrorException.InternalServerError exception) {
+    @ExceptionHandler(value = HttpServerErrorException.class)
+    public ResponseEntity<Apierror> exception(HttpServerErrorException exception) {
         Apierror apierror = new Apierror("Error processing request",404);
         return new ResponseEntity<>(apierror,HttpStatus.NOT_FOUND);
     }
