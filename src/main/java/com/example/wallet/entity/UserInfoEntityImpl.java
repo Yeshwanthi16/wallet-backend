@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Document(collection = "Users")
-public class UserInfoEntityImpl implements UserInfoEntity {
+public class UserInfoEntityImpl  {
     @Id
     String id;
 

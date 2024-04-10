@@ -11,7 +11,7 @@ import java.util.List;
 
 @Data
 @Document(collection = "TransactionData")
-public class TransactionDataImpl implements TransactionDataEntity{
+public class TransactionDataImpl {
     @Id
     private String id;
 

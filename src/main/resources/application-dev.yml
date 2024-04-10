@@ -2,8 +2,11 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27018/wallet
+
 allowed:
   origin: http://localhost:3000
+
+application.signingKey: 635166546A576E5A7234753778217A25432A462D4A614E645267556B58703273
 #logging.level.org.springframework.web.servlet.handler.HandlerMappingIntrospector=ERROR
 
 #logging.level.org.springframework=DEBUG
